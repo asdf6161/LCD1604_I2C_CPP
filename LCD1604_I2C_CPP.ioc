@@ -1,6 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
 File.Version=6
-I2C2.IPParameters=Timing
+I2C2.I2C_Speed_Mode=I2C_Standard
+I2C2.IPParameters=I2C_Speed_Mode,Timing
 I2C2.Timing=0x2000090E
 KeepUserPlacement=false
 Mcu.Family=STM32F3
@@ -25,6 +26,8 @@ MxDb.Version=DB.5.0.0
 NVIC.BusFault_IRQn=true\:0\:0\:false\:false\:true\:false
 NVIC.DebugMonitor_IRQn=true\:0\:0\:false\:false\:true\:false
 NVIC.HardFault_IRQn=true\:0\:0\:false\:false\:true\:false
+NVIC.I2C2_ER_IRQn=true\:0\:0\:false\:false\:true\:true
+NVIC.I2C2_EV_IRQn=true\:0\:0\:false\:false\:true\:true
 NVIC.MemoryManagement_IRQn=true\:0\:0\:false\:false\:true\:false
 NVIC.NonMaskableInt_IRQn=true\:0\:0\:false\:false\:true\:false
 NVIC.PendSV_IRQn=true\:0\:0\:false\:false\:true\:false
