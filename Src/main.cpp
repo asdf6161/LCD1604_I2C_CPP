@@ -39,11 +39,11 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include <Lcd.h>
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Lcd_i2c.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -126,20 +126,8 @@ int main(void)
 //			&example_transmit_to_lcd_i2c,
 //			&example_recive_from_lcd_i2c);
 //	lcd_i2c.init();
-	uint8_t recv = 0;
-	example_transmit_to_lcd_i2c(0b01001111, 0b11111100);
-	example_transmit_to_lcd_i2c(0b01001111, 0b11111000);
-	LL_mDelay(1);
-	example_transmit_to_lcd_i2c(0b01001111, 0b00111100);
-	example_transmit_to_lcd_i2c(0b01001111, 0b00111000);
-	LL_mDelay(1);
 	while (1)
 	{
-		example_transmit_to_lcd_i2c(0b01001111, 0b00001010);
-		example_transmit_to_lcd_i2c(0b01001111, 0b00001110);
-		example_transmit_to_lcd_i2c(0b01001111, 0b00001010);
-		recv = example_recive_from_lcd_i2c(0b01001111);
-		LL_mDelay(10);
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
