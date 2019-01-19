@@ -88,7 +88,8 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void example_transmit_to_lcd_i2c(uint8_t addres, uint8_t data);
+uint8_t example_recive_from_lcd_i2c(uint8_t addres);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

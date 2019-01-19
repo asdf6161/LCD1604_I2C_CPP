@@ -43,7 +43,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "Lcd_i2c.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -122,20 +122,24 @@ int main(void)
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+//	lcd::Lcd_i2c lcd_i2c = lcd::Lcd_i2c(0b01001111,
+//			&example_transmit_to_lcd_i2c,
+//			&example_recive_from_lcd_i2c);
+//	lcd_i2c.init();
+	uint8_t recv = 0;
+	example_transmit_to_lcd_i2c(0b01001111, 0b11111100);
+	example_transmit_to_lcd_i2c(0b01001111, 0b11111000);
+	LL_mDelay(1);
+	example_transmit_to_lcd_i2c(0b01001111, 0b00111100);
+	example_transmit_to_lcd_i2c(0b01001111, 0b00111000);
+	LL_mDelay(1);
 	while (1)
 	{
-		uint8_t ans_recv;
-		LL_I2C_HandleTransfer(I2C2, 0b01001111, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_READ);
-		while(!LL_I2C_IsActiveFlag_STOP(I2C2)){
-			ans_recv = LL_I2C_ReceiveData8(I2C2);
-		}
-		LL_I2C_ClearFlag_STOP(I2C2);
+		example_transmit_to_lcd_i2c(0b01001111, 0b00001010);
+		example_transmit_to_lcd_i2c(0b01001111, 0b00001110);
+		example_transmit_to_lcd_i2c(0b01001111, 0b00001010);
+		recv = example_recive_from_lcd_i2c(0b01001111);
 		LL_mDelay(10);
-		LL_I2C_HandleTransfer(I2C2, 0b01001111, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
-		while(!LL_I2C_IsActiveFlag_STOP(I2C2)){
-			LL_I2C_TransmitData8(I2C2, 0x55);
-		}
-		LL_I2C_ClearFlag_STOP(I2C2);
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
@@ -264,7 +268,24 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void example_transmit_to_lcd_i2c(uint8_t addres, uint8_t data){
+	LL_I2C_HandleTransfer(I2C2, addres, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
+	while(!LL_I2C_IsActiveFlag_STOP(I2C2)){
+		LL_I2C_TransmitData8(I2C2, data);
+	}
+	LL_I2C_ClearFlag_STOP(I2C2);
+}
 
+// addres - 0b01001111
+uint8_t example_recive_from_lcd_i2c(uint8_t addres){
+	uint8_t ans_recv;
+	LL_I2C_HandleTransfer(I2C2, addres, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_READ);
+	while(!LL_I2C_IsActiveFlag_STOP(I2C2)){
+		ans_recv = LL_I2C_ReceiveData8(I2C2);
+	}
+	LL_I2C_ClearFlag_STOP(I2C2);
+	return ans_recv;
+}
 /* USER CODE END 4 */
 
 /**
