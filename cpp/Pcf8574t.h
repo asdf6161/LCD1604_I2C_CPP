@@ -15,8 +15,7 @@
 
 extern "C" {
 #ifdef STM32F303xC
-//#include "stm32f3xx_ll_utils.h"
-#include "stm32f303xc.h"
+#include "stm32f3xx_ll_utils.h"
 #endif
 }
 
