@@ -127,9 +127,8 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	pcf::Pcf8574t pcf = pcf::Pcf8574t(0b01001111, &example_transmit_to_lcd_i2c,
 						      &example_recive_from_lcd_i2c);
-	lcd::Lcd_i2c lcd_i2c = lcd::Lcd_i2c(&pcf, lcd::DISP_2_LINE);
-	lcd_i2c.cursor_move_home();
-	lcd_i2c.write_string((uint8_t*)"long long string long long string long long string");
+	lcd::Lcd_i2c lcd_i2c = lcd::Lcd_i2c(&pcf);
+
 	while (1)
 	{
 		/* USER CODE END WHILE */
