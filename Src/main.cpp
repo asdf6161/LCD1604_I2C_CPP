@@ -46,6 +46,7 @@
 /* USER CODE BEGIN Includes */
 #include "Lcd.h"
 #include "Pcf8574t.h"
+#include "cstdlib"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -127,6 +128,47 @@ int main(void)
 	pcf::Pcf8574t pcf = pcf::Pcf8574t(0b01001111, &example_transmit_to_lcd_i2c,
 						      &example_recive_from_lcd_i2c);
 	lcd::Lcd_i2c lcd_i2c = lcd::Lcd_i2c(&pcf);
+
+	const uint8_t customChar[8] = {
+		0b00000,
+		0b01010,
+		0b11111,
+		0b11111,
+		0b01110,
+		0b00100,
+		0b00000,
+		0b00000
+	};
+	const uint8_t customChar1[8] = {
+		0b01010,
+		0b11111,
+		0b11111,
+		0b01110,
+		0b00100,
+		0b00000,
+		0b00000,
+		0b00000
+	};
+	const uint8_t customChar2[8] = {
+		0b00000,
+		0b00000,
+		0b00000,
+		0b01010,
+		0b11111,
+		0b11111,
+		0b01110,
+		0b00100
+	};
+	lcd_i2c.write_user_symbol(customChar, (const uint8_t)0x00);
+	lcd_i2c.write_user_symbol(customChar2, (const uint8_t)0x08);
+	lcd_i2c.write_user_symbol(customChar1, (const uint8_t)0x10);
+	LL_mDelay(100);
+	lcd_i2c.set_cursor_pos(0, 0);
+	lcd_i2c.write_symbol((uint8_t)0x00);
+	lcd_i2c.write_symbol((uint8_t)0x01);
+	lcd_i2c.write_symbol((uint8_t)0x02);
+	LL_mDelay(10);
+
 	while (1)
 	{
 		/* USER CODE END WHILE */
@@ -257,20 +299,28 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void example_transmit_to_lcd_i2c(uint8_t addres, uint8_t data){
+void example_transmit_to_lcd_i2c(const uint8_t addres, const uint8_t data){
 	LL_I2C_HandleTransfer(I2C2, addres, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
+	LL_I2C_TransmitData8(I2C2, data);
 	while(!LL_I2C_IsActiveFlag_STOP(I2C2)){
-		LL_I2C_TransmitData8(I2C2, data);
 	}
 	LL_I2C_ClearFlag_STOP(I2C2);
 }
 
 // addres - 0b01001111
-uint8_t example_recive_from_lcd_i2c(uint8_t addres){
-	uint8_t ans_recv;
+uint8_t example_recive_from_lcd_i2c(const uint8_t addres){
+	uint8_t ans_recv = 0;
 	LL_I2C_HandleTransfer(I2C2, addres, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_READ);
-	while(!LL_I2C_IsActiveFlag_STOP(I2C2)){
-		ans_recv = LL_I2C_ReceiveData8(I2C2);
+	while(!LL_I2C_IsActiveFlag_STOP(I2C2)) {
+		/* Receive data (RXNE flag raised) */
+
+		/* Check RXNE flag value in ISR register */
+		if(LL_I2C_IsActiveFlag_RXNE(I2C2))
+		{
+			/* Read character in Receive Data register.
+	      RXNE flag is cleared by reading data in RXDR register */
+			ans_recv = LL_I2C_ReceiveData8(I2C2);
+		}
 	}
 	LL_I2C_ClearFlag_STOP(I2C2);
 	return ans_recv;
