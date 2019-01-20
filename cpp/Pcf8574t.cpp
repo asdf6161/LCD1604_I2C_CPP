@@ -32,9 +32,21 @@ void Pcf8574t::send_full_byte(const uint8_t bt){
 	this->send_half_byte(bt);
 }
 
+void Pcf8574t::write_data(uint8_t command){
+	this->packet.bits.RS = 1;
+	this->send_full_byte(command);
+	this->packet.bits.RS = 0;
+	this->send_full_byte(0);
+}
+
 void Pcf8574t::__send_half_byte_with_strob(const uint8_t half_bt){
 	this->packet.byte &= 0b1111;
 	this->packet.byte |= half_bt << 4;
+	this->f_out(this->addr, this->packet.byte);
+	this->__send_strobe(&this->packet);
+}
+
+void Pcf8574t::__send_strobe(pcf_packet *p){
 	this->packet.bits.EN = 1;
 	this->f_out(this->addr, this->packet.byte);
 	LL_mDelay(1);

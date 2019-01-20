@@ -22,8 +22,8 @@ extern "C" {
 namespace pcf {
 
 // function type for transmit data to lcd
-typedef void (*pcf_func_out) (uint8_t, uint8_t);
-typedef uint8_t (*pcf_func_in) (uint8_t);
+typedef void (*pcf_func_out) (const uint8_t, const uint8_t);
+typedef uint8_t (*pcf_func_in) (const uint8_t);
 
 typedef union
 {
@@ -57,11 +57,13 @@ public:
 public:
 	void send_half_byte(const uint8_t half_bt);
 	void send_full_byte(const uint8_t bt);
+	void write_data(uint8_t command);
 	void enable_led(const bool state);
 
 // PV methods
 private:
 	void __send_half_byte_with_strob(const uint8_t half_bt);
+	void __send_strobe(pcf_packet *p);
 	void __set_pin(pcf_packet *p);
 
 // vars
