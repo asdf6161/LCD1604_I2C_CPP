@@ -44,6 +44,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "Lcd.h"
+#include "Pcf8574t.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -122,10 +124,9 @@ int main(void)
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-//	lcd::Lcd_i2c lcd_i2c = lcd::Lcd_i2c(0b01001111,
-//			&example_transmit_to_lcd_i2c,
-//			&example_recive_from_lcd_i2c);
-//	lcd_i2c.init();
+	pcf::Pcf8574t pcf = pcf::Pcf8574t(0b01001111, &example_transmit_to_lcd_i2c,
+						      &example_recive_from_lcd_i2c);
+	lcd::Lcd_i2c lcd_i2c = lcd::Lcd_i2c(&pcf);
 	while (1)
 	{
 		/* USER CODE END WHILE */
