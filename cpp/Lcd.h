@@ -5,7 +5,7 @@
  *      Author: yura
  */
 
-#ifdef USE_FULL_LL_DRIVER2
+#ifdef USE_FULL_LL_DRIVER
 #ifndef LCD_I2C_H_
 #define LCD_I2C_H_
 
@@ -35,10 +35,12 @@ class Lcd_i2c {
 
 public:
 	/*
-	 * addr - device addres for transmit
-	 * f - function for transmit data to lcd
+	 * sender - class realize method for send from Lcd_sender_abstract
+	 * size_x - number of symbols on the display on a horizontal
+	 * size_y - number of symbols on the display on a vertical
 	 * */
-	Lcd_i2c(uint8_t addr, func_out f, func_in fi);
+	Lcd_i2c(Lcd_sender_abstract *sender, uint8_t size_x, uint8_t size_y);
+	Lcd_i2c(Lcd_sender_abstract *sender);
 	virtual ~Lcd_i2c();
 
 // pb Methods
@@ -48,23 +50,22 @@ public:
 	void enable_cursor(bool state);
 	void enable_blink(bool state);
 	void enable_display(bool state);
+	void write_symbol(const uint8_t sym);
+	void set_cursor_pos(uint8_t x, uint8_t y);
 	void clear_display();
 	uint8_t get_addres();  // Todo
 
 // pv Methods
 private:
-	void __send_with_strob(const uint8_t half_byte);
-	void __send_half_bt(const uint8_t half_byte);
-	void __send_full_bt(const uint8_t bt);
 	void __set_4_bit_interface();
 	bool __read_busy_flag();
 
 // vars
 private:
-	uint8_t addres;
-	func_out transmit8;
-	func_in recive8;
-	packet data;
+	Lcd_sender_abstract *sender = nullptr;
+	uint8_t size_y;
+	uint8_t size_x;
+	uint8_t curr_pos;
 
 	// default param
 	uint8_t function_set 			= 0b00101100;  // {0 0 1 DL  N    F    -   -}
