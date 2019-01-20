@@ -82,6 +82,7 @@ private:
 	void __set_4_bit_interface();
 	void __set_DDRAM_addr(uint8_t addr);  /* pos on display */
 	void __set_CGRAM_addr(uint8_t addr);
+	void __delay_ms(uint32_t ms);
 	bool __read_busy_flag();
 
 // vars

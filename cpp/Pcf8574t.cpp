@@ -27,7 +27,7 @@ void Pcf8574t::send_half_byte(const uint8_t half_bt){
 }
 
 void Pcf8574t::send_byte(const uint8_t bt){
-	LL_mDelay(1);
+	this->__delay_ms(1);
 	this->send_half_byte(bt >> 4);
 	this->send_half_byte(bt);
 }
@@ -49,13 +49,17 @@ void Pcf8574t::__send_half_byte_with_strob(const uint8_t half_bt){
 void Pcf8574t::__send_strobe(pcf_packet *p){
 	this->packet.bits.EN = 1;
 	this->f_out(this->addr, this->packet.byte);
-	LL_mDelay(1);
+	this->__delay_ms(1);
 	this->packet.bits.EN = 0;
 	this->f_out(this->addr, this->packet.byte);
 }
 
 void Pcf8574t::__set_pin(pcf_packet *p){
 	this->f_out(this->addr, p->byte);
+}
+
+void __delay_ms(uint32_t ms){
+	LL_mDelay(ms);
 }
 
 void Pcf8574t::enable_led(const bool state){

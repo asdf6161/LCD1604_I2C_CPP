@@ -8,6 +8,11 @@
 #ifdef USE_FULL_LL_DRIVER
 #include <Lcd.h>
 
+/*
+ * Сделать так чтобы переменная curr_pos всегда соответствовала действительности
+ * Сделать так чтобы все измененые и установленные параметры дисплея хранились в классе
+ * */
+
 namespace lcd {
 //
 //Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender, uint8_t size_x, uint8_t size_y) {
@@ -132,6 +137,7 @@ void Lcd_i2c::shift_cursor(shift_direction dir, uint8_t cnt){
 				break;
 		}
 	}
+	this->__delay_ms(2);
 }
 
 void Lcd_i2c::cursor_set_pos(uint8_t x, uint8_t y){
@@ -161,13 +167,13 @@ void Lcd_i2c::clear_display(){
 }
 
 void Lcd_i2c::__set_4_bit_interface(){
-	LL_mDelay(15);
+	this->__delay_ms(15);
 	sender->send_byte(0b11);
-	LL_mDelay(5);
+	this->__delay_ms(5);
 	sender->send_byte(0b11);
-	LL_mDelay(1);
+	this->__delay_ms(1);
 	sender->send_byte(0b11);
-	LL_mDelay(1);
+	this->__delay_ms(1);
 	sender->send_byte(0b10);
 }
 
@@ -181,25 +187,29 @@ void Lcd_i2c::__set_CGRAM_addr(uint8_t addr){
 	this->sender->send_byte(CGRAM_addres | (addr & 0x1f));
 }
 
+void Lcd_i2c::__delay_ms(uint32_t ms){
+	LL_mDelay(ms);
+}
+
 void Lcd_i2c::init(){
 	this->enable_light(true);
-	LL_mDelay(1);
+	this->__delay_ms(1);
 	this->__set_4_bit_interface();
 
 	/* setting */
-	LL_mDelay(1);
+	this->__delay_ms(1);
 	sender->send_byte(function_set);
 
 	/* Display off */
-	LL_mDelay(1);
+	this->__delay_ms(1);
 	this->enable_display(0b00001000);
 
 	/* dipsplay clear */
-	LL_mDelay(1);
+	this->__delay_ms(1);
 	this->clear_display();
 
 	/* setting mode */
-	LL_mDelay(1);
+	this->__delay_ms(1);
 	sender->send_byte(entry_mode_set);
 }
 
