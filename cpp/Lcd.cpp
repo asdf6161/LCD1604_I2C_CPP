@@ -85,7 +85,7 @@ void Lcd_i2c::set_cursor_pos(uint8_t x, uint8_t y){
 }
 
 void Lcd_i2c::write_user_symbol(const uint8_t *arr, const uint8_t addres){
-	this->__set_CGRAM_addr(addres);
+	this->__set_CGRAM_addr(addres * 8);
 	for (uint8_t i = 0; i < 8; ++i) {
 		this->sender->write_data(arr[i]);
 	}

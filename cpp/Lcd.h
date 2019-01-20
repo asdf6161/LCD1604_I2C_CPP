@@ -52,6 +52,7 @@ public:
 	void enable_display(bool state);
 	void write_symbol(const uint8_t sym);
 	void write_string(uint8_t *sym);
+	/* arr have size 8, contain 5bit constant, address 0-7 */
 	void write_user_symbol(const uint8_t *arr, const uint8_t addres);
 	/* start x=0 y=0; x max 63; y max 1*/
 	void set_cursor_pos(uint8_t x, uint8_t y);
