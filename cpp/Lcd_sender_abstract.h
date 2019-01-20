@@ -28,6 +28,11 @@ public:
 	virtual void send_full_byte(const uint8_t bt) = 0;
 
 	/*
+	 * Has to send a package of RS=1
+	 * */
+	virtual void write_data(uint8_t command) = 0;
+
+	/*
 	 * Method must be enable LED illumination
 	 * If led is not control by program - set body method is empty
 	 * */
