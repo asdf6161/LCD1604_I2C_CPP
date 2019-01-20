@@ -10,8 +10,8 @@
 
 class Lcd_sender_abstract {
 public:
-	Lcd_sender_abstract();
-	virtual ~Lcd_sender_abstract();
+	Lcd_sender_abstract(){};
+	virtual ~Lcd_sender_abstract(){};
 
 // virtual methods
 public:
@@ -25,13 +25,13 @@ public:
 	 * Must be send 8 bit data to lcd with two E
 	 * High bit is first
 	 * */
-	virtual void send_full_byte(const uint8_t bt);
+	virtual void send_full_byte(const uint8_t bt) = 0;
 
 	/*
 	 * Method must be enable LED illumination
 	 * If led is not control by program - set body method is empty
 	 * */
-	void enable_led(const bool state);
+	virtual void enable_led(const bool state) = 0;
 
 };
 
