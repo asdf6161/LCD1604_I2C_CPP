@@ -18,11 +18,23 @@ namespace lcd {
 //	this->curr_pos = 0x0;
 //}
 
+Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender, display_line_cnt line_cnt) {
+	this->sender = sender;
+	this->size_x = 16;
+	this->size_y = 2;
+	this->curr_pos = 0x0;
+	this->line_cnt = line_cnt;
+	this->set_numbers_disp_line(this->line_cnt);
+	this->init();
+}
+
 Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender) {
 	this->sender = sender;
 	this->size_x = 16;
 	this->size_y = 2;
 	this->curr_pos = 0x0;
+	this->line_cnt = DISP_2_LINE;
+	this->set_numbers_disp_line(this->line_cnt);
 	this->init();
 }
 
@@ -70,6 +82,21 @@ void Lcd_i2c::write_symbol(const uint8_t sym){
 void Lcd_i2c::write_string(uint8_t *sym){
 	while((*sym) != '\0'){
 		this->write_symbol((*sym++));
+	}
+}
+
+void Lcd_i2c::set_numbers_disp_line(display_line_cnt cnt){
+	switch (cnt) {
+		case DISP_1_LINE:{
+			function_set &= ~(1 << BIT_N);
+			break;
+		}
+		case DISP_2_LINE:{
+			function_set |= (1 << BIT_N);
+			break;
+		}
+		default:
+			break;
 	}
 }
 

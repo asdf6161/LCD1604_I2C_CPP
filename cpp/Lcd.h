@@ -38,6 +38,11 @@ enum shift_direction {
 //	SHIFT_DOWN, // Todo
 };
 
+enum display_line_cnt {
+	DISP_2_LINE,
+	DISP_1_LINE,
+};
+
 class Lcd_i2c {
 
 public:
@@ -45,8 +50,10 @@ public:
 	 * sender - class realize method for send from Lcd_sender_abstract
 	 * size_x - number of symbols on the display on a horizontal
 	 * size_y - number of symbols on the display on a vertical
+	 * line_cnt - quantity of the displayed lines
 	 * */
 //	Lcd_i2c(Lcd_sender_abstract *sender, uint8_t size_x, uint8_t size_y);
+	Lcd_i2c(Lcd_sender_abstract *sender, display_line_cnt line_cnt);
 	Lcd_i2c(Lcd_sender_abstract *sender);
 	virtual ~Lcd_i2c();
 
@@ -59,6 +66,8 @@ public:
 	void enable_display(bool state);
 	void write_symbol(const uint8_t sym);
 	void write_string(uint8_t *sym);
+	/* for set numbers display line need reinit lcd */
+	void set_numbers_disp_line(display_line_cnt cnt);
 	void shift_display(shift_direction dir, uint8_t cnt);
 	void shift_cursor(shift_direction dir, uint8_t cnt);
 	/* arr have size 8, contain 5bit constant, address 0-7 */
@@ -81,11 +90,12 @@ private:
 	uint8_t size_y;
 	uint8_t size_x;
 	uint8_t curr_pos;
+	display_line_cnt line_cnt;
 
 	// default param
 	uint8_t DDRAM_addres			= 0b10000000;  // {1 AC6-AC0}
 	uint8_t CGRAM_addres			= 0b01000000;  // {1 AC6-AC0}
-	uint8_t function_set 			= 0b00101100;  // {0 0 1 DL  N    F    -   -}
+	uint8_t function_set 			= 0b00100000;  // {0 0 1 DL  N    F    -   -}
 	uint8_t cursor_display_shift 	= 0b00010000;  // {0 0 0 1   S/C  R/L  -   -}
 	uint8_t display_on_off 			= 0b00001111;  // {0 0 0 0   1    D    C   B}
 	uint8_t entry_mode_set 			= 0b00000110;  // {0 0 0 0   0    1    I/D SH}
