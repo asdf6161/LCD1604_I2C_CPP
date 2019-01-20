@@ -44,7 +44,7 @@ void Lcd_i2c::enable_cursor(bool state){
 		display_on_off |= (1 << BIT_C);
 	else
 		display_on_off &= ~(1 << BIT_C);
-	sender->send_full_byte(display_on_off);
+	sender->send_byte(display_on_off);
 }
 
 void Lcd_i2c::enable_blink(bool state){
@@ -52,7 +52,7 @@ void Lcd_i2c::enable_blink(bool state){
 		display_on_off |= (1 << BIT_B);
 	else
 		display_on_off &= ~(1 << BIT_B);
-	sender->send_full_byte(display_on_off);
+	sender->send_byte(display_on_off);
 }
 
 void Lcd_i2c::enable_display(bool state){
@@ -60,7 +60,7 @@ void Lcd_i2c::enable_display(bool state){
 		display_on_off |= (1 << BIT_D);
 	else
 		display_on_off &= ~(1 << BIT_D);
-	sender->send_full_byte(display_on_off);
+	sender->send_byte(display_on_off);
 }
 
 void Lcd_i2c::write_symbol(const uint8_t sym){
@@ -77,11 +77,11 @@ void Lcd_i2c::shift_display(shift_direction dir, uint8_t cnt){
 	for (uint8_t i = 0; i < cnt; i++) {
 		switch (dir) {
 			case SHIFT_LEFT:{
-				this->sender->send_full_byte(cursor_display_shift | (1 << BIT_S_C) | (1 << BIT_R_L));
+				this->sender->send_byte(cursor_display_shift | (1 << BIT_S_C) | (1 << BIT_R_L));
 				break;
 			}
 			case SHIFT_RIGHT:{
-				this->sender->send_full_byte(cursor_display_shift | (1 << BIT_S_C));
+				this->sender->send_byte(cursor_display_shift | (1 << BIT_S_C));
 				break;
 			}
 			default:
@@ -94,11 +94,11 @@ void Lcd_i2c::shift_cursor(shift_direction dir, uint8_t cnt){
 	for (uint8_t i = 0; i < cnt; i++) {
 		switch (dir) {
 			case SHIFT_LEFT:{
-				this->sender->send_full_byte(cursor_display_shift);
+				this->sender->send_byte(cursor_display_shift);
 				break;
 			}
 			case SHIFT_RIGHT:{
-				this->sender->send_full_byte(cursor_display_shift | (1 << BIT_R_L));
+				this->sender->send_byte(cursor_display_shift | (1 << BIT_R_L));
 				break;
 			}
 			default:
@@ -119,7 +119,7 @@ void Lcd_i2c::cursor_set_pos(uint8_t x, uint8_t y){
 }
 
 void Lcd_i2c::cursor_move_home(){
-	this->sender->send_full_byte(this->return_home);
+	this->sender->send_byte(this->return_home);
 }
 
 void Lcd_i2c::write_user_symbol(const uint8_t *arr, const uint8_t addres){
@@ -130,28 +130,28 @@ void Lcd_i2c::write_user_symbol(const uint8_t *arr, const uint8_t addres){
 }
 
 void Lcd_i2c::clear_display(){
-	sender->send_full_byte(display_clear);
+	sender->send_byte(display_clear);
 }
 
 void Lcd_i2c::__set_4_bit_interface(){
 	LL_mDelay(15);
-	sender->send_half_byte(0b11);
+	sender->send_byte(0b11);
 	LL_mDelay(5);
-	sender->send_half_byte(0b11);
+	sender->send_byte(0b11);
 	LL_mDelay(1);
-	sender->send_half_byte(0b11);
+	sender->send_byte(0b11);
 	LL_mDelay(1);
-	sender->send_half_byte(0b10);
+	sender->send_byte(0b10);
 }
 
 void Lcd_i2c::__set_DDRAM_addr(uint8_t addr){
 	this->DDRAM_addres &= 0b10000000;
 	this->DDRAM_addres |= addr & 0b01111111;
-	this->sender->send_full_byte(DDRAM_addres);
+	this->sender->send_byte(DDRAM_addres);
 }
 
 void Lcd_i2c::__set_CGRAM_addr(uint8_t addr){
-	this->sender->send_full_byte(CGRAM_addres | (addr & 0x1f));
+	this->sender->send_byte(CGRAM_addres | (addr & 0x1f));
 }
 
 void Lcd_i2c::init(){
@@ -161,7 +161,7 @@ void Lcd_i2c::init(){
 
 	/* setting */
 	LL_mDelay(1);
-	sender->send_full_byte(function_set);
+	sender->send_byte(function_set);
 
 	/* Display off */
 	LL_mDelay(1);
@@ -173,7 +173,7 @@ void Lcd_i2c::init(){
 
 	/* setting mode */
 	LL_mDelay(1);
-	sender->send_full_byte(entry_mode_set);
+	sender->send_byte(entry_mode_set);
 }
 
 

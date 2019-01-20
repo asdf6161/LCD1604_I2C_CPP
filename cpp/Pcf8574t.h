@@ -56,7 +56,7 @@ public:
 // methods
 public:
 	void send_half_byte(const uint8_t half_bt);
-	void send_full_byte(const uint8_t bt);
+	void send_byte(const uint8_t bt);
 	void write_data(uint8_t command);
 	void enable_led(const bool state);
 

@@ -23,20 +23,20 @@ Pcf8574t::~Pcf8574t() {
 }
 
 void Pcf8574t::send_half_byte(const uint8_t half_bt){
-	LL_mDelay(1);
 	this->__send_half_byte_with_strob(half_bt & 0x0f);
 }
 
-void Pcf8574t::send_full_byte(const uint8_t bt){
+void Pcf8574t::send_byte(const uint8_t bt){
+	LL_mDelay(1);
 	this->send_half_byte(bt >> 4);
 	this->send_half_byte(bt);
 }
 
 void Pcf8574t::write_data(uint8_t command){
 	this->packet.bits.RS = 1;
-	this->send_full_byte(command);
+	this->send_byte(command);
 	this->packet.bits.RS = 0;
-	this->send_full_byte(0);
+	this->send_byte(0);
 }
 
 void Pcf8574t::__send_half_byte_with_strob(const uint8_t half_bt){
