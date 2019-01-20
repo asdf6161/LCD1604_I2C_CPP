@@ -8,11 +8,6 @@
 #ifdef USE_FULL_LL_DRIVER
 #include <Lcd.h>
 
-/*
- * Сделать так чтобы переменная curr_pos всегда соответствовала действительности
- * Сделать так чтобы все измененые и установленные параметры дисплея хранились в классе
- * */
-
 namespace lcd {
 //
 //Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender, uint8_t size_x, uint8_t size_y) {
@@ -25,8 +20,6 @@ namespace lcd {
 
 Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender, display_line_cnt line_cnt) {
 	this->sender = sender;
-	this->size_x = 16;
-	this->size_y = 2;
 	this->curr_pos = 0x0;
 	this->line_cnt = line_cnt;
 	this->set_numbers_disp_line(this->line_cnt);
@@ -35,8 +28,6 @@ Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender, display_line_cnt line_cnt) {
 
 Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender) {
 	this->sender = sender;
-	this->size_x = 16;
-	this->size_y = 2;
 	this->curr_pos = 0x0;
 	this->line_cnt = DISP_2_LINE;
 	this->set_numbers_disp_line(this->line_cnt);
@@ -80,8 +71,25 @@ void Lcd_i2c::enable_display(bool state){
 	sender->send_byte(display_on_off);
 }
 
+void Lcd_i2c::cursor_set_autoshift(shift_direction dir){
+	switch (dir) {
+		case SHIFT_RIGHT:{
+			entry_mode_set |= 1 << BIT_I_D;
+			break;
+		}
+		case SHIFT_LEFT:{
+			entry_mode_set &= ~(1 << BIT_I_D);
+			break;
+		}
+		default:
+			break;
+	}
+	sender->send_byte(entry_mode_set);
+}
+
 void Lcd_i2c::write_symbol(const uint8_t sym){
 	this->sender->write_data(sym);
+	this->curr_pos++;
 }
 
 void Lcd_i2c::write_string(uint8_t *sym){
@@ -103,22 +111,25 @@ void Lcd_i2c::set_numbers_disp_line(display_line_cnt cnt){
 		default:
 			break;
 	}
+	this->sender->send_byte(function_set);
 }
 
 void Lcd_i2c::shift_display(shift_direction dir, uint8_t cnt){
 	for (uint8_t i = 0; i < cnt; i++) {
 		switch (dir) {
 			case SHIFT_LEFT:{
-				this->sender->send_byte(cursor_display_shift | (1 << BIT_S_C) | (1 << BIT_R_L));
+				cursor_display_shift |= (1 << BIT_S_C) | (1 << BIT_R_L);
 				break;
 			}
 			case SHIFT_RIGHT:{
-				this->sender->send_byte(cursor_display_shift | (1 << BIT_S_C));
+				cursor_display_shift |= (1 << BIT_S_C);
+				cursor_display_shift &= ~(1 << BIT_R_L);
 				break;
 			}
 			default:
 				break;
 		}
+		this->sender->send_byte(cursor_display_shift);
 	}
 }
 
@@ -126,18 +137,20 @@ void Lcd_i2c::shift_cursor(shift_direction dir, uint8_t cnt){
 	for (uint8_t i = 0; i < cnt; i++) {
 		switch (dir) {
 			case SHIFT_LEFT:{
-				this->sender->send_byte(cursor_display_shift);
+				cursor_display_shift &= ~(1 << BIT_R_L);
+				this->curr_pos--;
 				break;
 			}
 			case SHIFT_RIGHT:{
-				this->sender->send_byte(cursor_display_shift | (1 << BIT_R_L));
+				cursor_display_shift |= (1 << BIT_R_L);
+				this->curr_pos++;
 				break;
 			}
 			default:
 				break;
 		}
+		this->sender->send_byte(cursor_display_shift);
 	}
-	this->__delay_ms(2);
 }
 
 void Lcd_i2c::cursor_set_pos(uint8_t x, uint8_t y){
@@ -151,19 +164,33 @@ void Lcd_i2c::cursor_set_pos(uint8_t x, uint8_t y){
 	this->__set_DDRAM_addr(this->curr_pos);
 }
 
-void Lcd_i2c::cursor_move_home(){
+void Lcd_i2c::cursor_return_home(){
 	this->sender->send_byte(this->return_home);
+	this->curr_pos = 0;
 }
 
 void Lcd_i2c::write_user_symbol(const uint8_t *arr, const uint8_t addres){
-	this->__set_CGRAM_addr(addres * 8);
+	this->__set_CGRAM_addr((addres%8) * 8);
 	for (uint8_t i = 0; i < 8; ++i) {
 		this->sender->write_data(arr[i]);
 	}
+	this->__set_DDRAM_addr(curr_pos); // Возвращяем курсор
 }
 
 void Lcd_i2c::clear_display(){
 	sender->send_byte(display_clear);
+}
+
+uint8_t Lcd_i2c::get_cursor_pos_x(){
+	return (this->curr_pos % MAX_HORISONTAL_CELL);
+}
+
+uint8_t Lcd_i2c::get_cursor_pos_y(){
+	return (this->curr_pos / MAX_HORISONTAL_CELL);
+}
+
+Lcd_sender_abstract *Lcd_i2c::get_sender(){
+	return this->sender;
 }
 
 void Lcd_i2c::__set_4_bit_interface(){
@@ -171,9 +198,7 @@ void Lcd_i2c::__set_4_bit_interface(){
 	sender->send_byte(0b11);
 	this->__delay_ms(5);
 	sender->send_byte(0b11);
-	this->__delay_ms(1);
 	sender->send_byte(0b11);
-	this->__delay_ms(1);
 	sender->send_byte(0b10);
 }
 
@@ -184,33 +209,38 @@ void Lcd_i2c::__set_DDRAM_addr(uint8_t addr){
 }
 
 void Lcd_i2c::__set_CGRAM_addr(uint8_t addr){
-	this->sender->send_byte(CGRAM_addres | (addr & 0x1f));
+	CGRAM_addres &= ~(0x3f);
+	CGRAM_addres |= (addr & 0x3f);
+	this->sender->send_byte(CGRAM_addres);
 }
 
 void Lcd_i2c::__delay_ms(uint32_t ms){
 	LL_mDelay(ms);
 }
 
+void Lcd_i2c::__delay_us(uint32_t us){
+	if (us < 1000)
+		this->__delay_ms(1);
+	else
+		this->__delay_ms(us / 1000);
+}
+
 void Lcd_i2c::init(){
 	this->enable_light(true);
-	this->__delay_ms(1);
 	this->__set_4_bit_interface();
 
 	/* setting */
-	this->__delay_ms(1);
 	sender->send_byte(function_set);
 
 	/* Display off */
-	this->__delay_ms(1);
 	this->enable_display(0b00001000);
 
 	/* dipsplay clear */
-	this->__delay_ms(1);
 	this->clear_display();
 
 	/* setting mode */
-	this->__delay_ms(1);
-	sender->send_byte(entry_mode_set);
+	this->sender->send_byte(entry_mode_set);
+	this->cursor_return_home();
 }
 
 

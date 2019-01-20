@@ -9,6 +9,7 @@
 #ifndef LCD_I2C_H_
 #define LCD_I2C_H_
 
+#define MAX_HORISONTAL_CELL 40  // DEC non HEX
 #define BIT_I_D 1
 #define BIT_SH  0
 #define BIT_S_C 3
@@ -64,9 +65,9 @@ public:
 	void enable_cursor(bool state);
 	void enable_blink(bool state);
 	void enable_display(bool state);
+	void cursor_set_autoshift(shift_direction dir);
 	void write_symbol(const uint8_t sym);
 	void write_string(uint8_t *sym);
-	/* for set numbers display line need reinit lcd */
 	void set_numbers_disp_line(display_line_cnt cnt);
 	void shift_display(shift_direction dir, uint8_t cnt);
 	void shift_cursor(shift_direction dir, uint8_t cnt);
@@ -74,8 +75,13 @@ public:
 	void write_user_symbol(const uint8_t *arr, const uint8_t addres);
 	/* start x=0 y=0; x max 63; y max 1*/
 	void cursor_set_pos(uint8_t x, uint8_t y);
-	void cursor_move_home();
+	void cursor_return_home();
 	void clear_display();
+
+	/* getters and settors */
+	uint8_t get_cursor_pos_x();
+	uint8_t get_cursor_pos_y();
+	Lcd_sender_abstract *get_sender();
 
 // pv Methods
 private:
@@ -83,19 +89,18 @@ private:
 	void __set_DDRAM_addr(uint8_t addr);  /* pos on display */
 	void __set_CGRAM_addr(uint8_t addr);
 	void __delay_ms(uint32_t ms);
+	void __delay_us(uint32_t us);
 	bool __read_busy_flag();
 
 // vars
 private:
 	Lcd_sender_abstract *sender = nullptr;
-	uint8_t size_y;
-	uint8_t size_x;
 	uint8_t curr_pos;
 	display_line_cnt line_cnt;
 
 	// default param
 	uint8_t DDRAM_addres			= 0b10000000;  // {1 AC6-AC0}
-	uint8_t CGRAM_addres			= 0b01000000;  // {1 AC6-AC0}
+	uint8_t CGRAM_addres			= 0b01000000;  // {1 AC5-AC0}
 	uint8_t function_set 			= 0b00100000;  // {0 0 1 DL  N    F    -   -}
 	uint8_t cursor_display_shift 	= 0b00010000;  // {0 0 0 1   S/C  R/L  -   -}
 	uint8_t display_on_off 			= 0b00001111;  // {0 0 0 0   1    D    C   B}
