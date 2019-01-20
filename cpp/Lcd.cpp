@@ -73,7 +73,41 @@ void Lcd_i2c::write_string(uint8_t *sym){
 	}
 }
 
-void Lcd_i2c::set_cursor_pos(uint8_t x, uint8_t y){
+void Lcd_i2c::shift_display(shift_direction dir, uint8_t cnt){
+	for (uint8_t i = 0; i < cnt; i++) {
+		switch (dir) {
+			case SHIFT_LEFT:{
+				this->sender->send_full_byte(cursor_display_shift | (1 << BIT_S_C) | (1 << BIT_R_L));
+				break;
+			}
+			case SHIFT_RIGHT:{
+				this->sender->send_full_byte(cursor_display_shift | (1 << BIT_S_C));
+				break;
+			}
+			default:
+				break;
+		}
+	}
+}
+
+void Lcd_i2c::shift_cursor(shift_direction dir, uint8_t cnt){
+	for (uint8_t i = 0; i < cnt; i++) {
+		switch (dir) {
+			case SHIFT_LEFT:{
+				this->sender->send_full_byte(cursor_display_shift);
+				break;
+			}
+			case SHIFT_RIGHT:{
+				this->sender->send_full_byte(cursor_display_shift | (1 << BIT_R_L));
+				break;
+			}
+			default:
+				break;
+		}
+	}
+}
+
+void Lcd_i2c::cursor_set_pos(uint8_t x, uint8_t y){
 	if (x > 0x3f){
 		x = 0x3f;
 	}
@@ -82,6 +116,10 @@ void Lcd_i2c::set_cursor_pos(uint8_t x, uint8_t y){
 	}
 	this->curr_pos = x | (y << 6);
 	this->__set_DDRAM_addr(this->curr_pos);
+}
+
+void Lcd_i2c::cursor_move_home(){
+	this->sender->send_full_byte(this->return_home);
 }
 
 void Lcd_i2c::write_user_symbol(const uint8_t *arr, const uint8_t addres){
