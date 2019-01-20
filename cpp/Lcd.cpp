@@ -9,21 +9,21 @@
 #include <Lcd.h>
 
 namespace lcd {
-
-Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender, uint8_t size_x, uint8_t size_y) {
-	this->sender = sender;
-	this->init();
-	this->size_x = size_x;
-	this->size_y = size_y;
-	this->curr_pos = 0x0;
-}
+//
+//Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender, uint8_t size_x, uint8_t size_y) {
+//	this->sender = sender;
+//	this->init();
+//	this->size_x = size_x;
+//	this->size_y = size_y;
+//	this->curr_pos = 0x0;
+//}
 
 Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender) {
 	this->sender = sender;
-	this->init();
 	this->size_x = 16;
 	this->size_y = 2;
 	this->curr_pos = 0x0;
+	this->init();
 }
 
 Lcd_i2c::~Lcd_i2c() {
@@ -63,12 +63,32 @@ void Lcd_i2c::enable_display(bool state){
 	sender->send_full_byte(display_on_off);
 }
 
-void write_symbol(const uint8_t sym){
-	// Todo
+void Lcd_i2c::write_symbol(const uint8_t sym){
+	this->sender->write_data(sym);
 }
 
-void set_cursor_pos(uint8_t x, uint8_t y){
+void Lcd_i2c::write_string(uint8_t *sym){
+	while((*sym) != '\0'){
+		this->write_symbol((*sym++));
+	}
+}
 
+void Lcd_i2c::set_cursor_pos(uint8_t x, uint8_t y){
+	if (x > 0x3f){
+		x = 0x3f;
+	}
+	if (y > 1){
+		y = 1;
+	}
+	this->curr_pos = x | (y << 6);
+	this->__set_DDRAM_addr(this->curr_pos);
+}
+
+void Lcd_i2c::write_user_symbol(const uint8_t *arr, const uint8_t addres){
+	this->__set_CGRAM_addr(addres);
+	for (uint8_t i = 0; i < 8; ++i) {
+		this->sender->write_data(arr[i]);
+	}
 }
 
 void Lcd_i2c::clear_display(){
@@ -84,6 +104,16 @@ void Lcd_i2c::__set_4_bit_interface(){
 	sender->send_half_byte(0b11);
 	LL_mDelay(1);
 	sender->send_half_byte(0b10);
+}
+
+void Lcd_i2c::__set_DDRAM_addr(uint8_t addr){
+	this->DDRAM_addres &= 0b10000000;
+	this->DDRAM_addres |= addr & 0b01111111;
+	this->sender->send_full_byte(DDRAM_addres);
+}
+
+void Lcd_i2c::__set_CGRAM_addr(uint8_t addr){
+	this->sender->send_full_byte(CGRAM_addres | (addr & 0x1f));
 }
 
 void Lcd_i2c::init(){

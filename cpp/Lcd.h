@@ -39,7 +39,7 @@ public:
 	 * size_x - number of symbols on the display on a horizontal
 	 * size_y - number of symbols on the display on a vertical
 	 * */
-	Lcd_i2c(Lcd_sender_abstract *sender, uint8_t size_x, uint8_t size_y);
+//	Lcd_i2c(Lcd_sender_abstract *sender, uint8_t size_x, uint8_t size_y);
 	Lcd_i2c(Lcd_sender_abstract *sender);
 	virtual ~Lcd_i2c();
 
@@ -51,13 +51,17 @@ public:
 	void enable_blink(bool state);
 	void enable_display(bool state);
 	void write_symbol(const uint8_t sym);
+	void write_string(uint8_t *sym);
+	void write_user_symbol(const uint8_t *arr, const uint8_t addres);
+	/* start x=0 y=0; x max 63; y max 1*/
 	void set_cursor_pos(uint8_t x, uint8_t y);
 	void clear_display();
-	uint8_t get_addres();  // Todo
 
 // pv Methods
 private:
 	void __set_4_bit_interface();
+	void __set_DDRAM_addr(uint8_t addr);  /* pos on display */
+	void __set_CGRAM_addr(uint8_t addr);
 	bool __read_busy_flag();
 
 // vars
@@ -68,6 +72,8 @@ private:
 	uint8_t curr_pos;
 
 	// default param
+	uint8_t DDRAM_addres			= 0b10000000;  // {1 AC6-AC0}
+	uint8_t CGRAM_addres			= 0b01000000;  // {1 AC6-AC0}
 	uint8_t function_set 			= 0b00101100;  // {0 0 1 DL  N    F    -   -}
 	uint8_t cursor_display_shift 	= 0b00010100;  // {0 0 0 1   S/C  R/L  -   -}
 	uint8_t display_on_off 			= 0b00001111;  // {0 0 0 0   1    D    C   B}
