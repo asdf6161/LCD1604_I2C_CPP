@@ -127,15 +127,11 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	pcf::Pcf8574t pcf = pcf::Pcf8574t(0b01001111, &example_transmit_to_lcd_i2c,
 						      &example_recive_from_lcd_i2c);
-	lcd::Lcd_i2c lcd_i2c = lcd::Lcd_i2c(&pcf);
+	lcd::Lcd_i2c lcd_i2c = lcd::Lcd_i2c(&pcf, lcd::DISP_2_LINE);
 	lcd_i2c.cursor_move_home();
-	lcd_i2c.write_string((uint8_t*)"long long string long long string");
-	lcd_i2c.cursor_set_pos(0, 1);
-	lcd_i2c.write_string((uint8_t*)"long long string long long string");
+	lcd_i2c.write_string((uint8_t*)"long long string long long string long long string");
 	while (1)
 	{
-		lcd_i2c.shift_display(lcd::SHIFT_RIGHT, 1);
-		LL_mDelay(1000);
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
