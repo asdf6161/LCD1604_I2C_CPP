@@ -18,36 +18,34 @@ namespace lcd {
 //	this->curr_pos = 0x0;
 //}
 
-Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender, display_line_cnt line_cnt) {
+Lcd::Lcd(Lcd_sender_abstract *sender, display_line_cnt line_cnt) {
 	this->sender = sender;
 	this->curr_pos = 0x0;
 	this->line_cnt = line_cnt;
-	this->set_numbers_disp_line(this->line_cnt);
 	this->init();
 }
 
-Lcd_i2c::Lcd_i2c(Lcd_sender_abstract *sender) {
+Lcd::Lcd(Lcd_sender_abstract *sender) {
 	this->sender = sender;
 	this->curr_pos = 0x0;
 	this->line_cnt = DISP_2_LINE;
-	this->set_numbers_disp_line(this->line_cnt);
 	this->init();
 }
 
-Lcd_i2c::~Lcd_i2c() {
+Lcd::~Lcd() {
 
 }
 
-bool Lcd_i2c::__read_busy_flag(){
+bool Lcd::__read_busy_flag(){
 	// Todo
 	return false;
 }
 
-void Lcd_i2c::enable_light(bool state){
+void Lcd::enable_light(bool state){
 	sender->enable_led(state);
 }
 
-void Lcd_i2c::enable_cursor(bool state){
+void Lcd::enable_cursor(bool state){
 	if (state)
 		display_on_off |= (1 << BIT_C);
 	else
@@ -55,7 +53,7 @@ void Lcd_i2c::enable_cursor(bool state){
 	sender->send_byte(display_on_off);
 }
 
-void Lcd_i2c::enable_blink(bool state){
+void Lcd::enable_blink(bool state){
 	if (state)
 		display_on_off |= (1 << BIT_B);
 	else
@@ -63,15 +61,26 @@ void Lcd_i2c::enable_blink(bool state){
 	sender->send_byte(display_on_off);
 }
 
-void Lcd_i2c::enable_display(bool state){
-	if (state)
+void Lcd::enable_display(bool state){
+	if (state){
 		display_on_off |= (1 << BIT_D);
-	else
+	}
+	else{
 		display_on_off &= ~(1 << BIT_D);
+	}
 	sender->send_byte(display_on_off);
 }
 
-void Lcd_i2c::cursor_set_autoshift(shift_direction dir){
+void Lcd::enable_display_shift(bool state){
+	if (state){
+		entry_mode_set |= 1 << BIT_SH;
+	} else {
+		entry_mode_set &= ~(1 << BIT_SH);
+	}
+	sender->send_byte(entry_mode_set);
+}
+
+void Lcd::cursor_set_autoshift(shift_direction dir){
 	switch (dir) {
 		case SHIFT_RIGHT:{
 			entry_mode_set |= 1 << BIT_I_D;
@@ -87,18 +96,18 @@ void Lcd_i2c::cursor_set_autoshift(shift_direction dir){
 	sender->send_byte(entry_mode_set);
 }
 
-void Lcd_i2c::write_symbol(const uint8_t sym){
+void Lcd::write_symbol(const uint8_t sym){
 	this->sender->write_data(sym);
 	this->curr_pos++;
 }
 
-void Lcd_i2c::write_string(uint8_t *sym){
+void Lcd::write_string(uint8_t *sym){
 	while((*sym) != '\0'){
 		this->write_symbol((*sym++));
 	}
 }
 
-void Lcd_i2c::set_numbers_disp_line(display_line_cnt cnt){
+void Lcd::set_numbers_disp_line(display_line_cnt cnt){
 	switch (cnt) {
 		case DISP_1_LINE:{
 			function_set &= ~(1 << BIT_N);
@@ -114,7 +123,39 @@ void Lcd_i2c::set_numbers_disp_line(display_line_cnt cnt){
 	this->sender->send_byte(function_set);
 }
 
-void Lcd_i2c::shift_display(shift_direction dir, uint8_t cnt){
+void Lcd::__set_interface_data_length(interface_data_length cnt){
+	switch (cnt) {
+		case INTERFACE_4_BIT:{
+			function_set &= ~(1 << BIT_D_L);
+			break;
+		}
+		case INTERFACE_8_BIT:{
+			function_set |= (1 << BIT_D_L);
+			break;
+		}
+		default:
+			break;
+	}
+	this->sender->send_byte(function_set);
+}
+
+void Lcd::set_display_font_type(font_type type){
+	switch (type) {
+		case FONT_5X11:{
+			function_set &= ~(1 << BIT_F);
+			break;
+		}
+		case FONT_5X8:{
+			function_set |= (1 << BIT_F);
+			break;
+		}
+		default:
+			break;
+	}
+	this->sender->send_byte(function_set);
+}
+
+void Lcd::set_display_shift(shift_direction dir, uint8_t cnt){
 	for (uint8_t i = 0; i < cnt; i++) {
 		switch (dir) {
 			case SHIFT_LEFT:{
@@ -133,7 +174,7 @@ void Lcd_i2c::shift_display(shift_direction dir, uint8_t cnt){
 	}
 }
 
-void Lcd_i2c::shift_cursor(shift_direction dir, uint8_t cnt){
+void Lcd::set_cursor_shift(shift_direction dir, uint8_t cnt){
 	for (uint8_t i = 0; i < cnt; i++) {
 		switch (dir) {
 			case SHIFT_LEFT:{
@@ -153,7 +194,7 @@ void Lcd_i2c::shift_cursor(shift_direction dir, uint8_t cnt){
 	}
 }
 
-void Lcd_i2c::cursor_set_pos(uint8_t x, uint8_t y){
+void Lcd::cursor_set_pos(uint8_t x, uint8_t y){
 	if (x > 0x3f){
 		x = 0x3f;
 	}
@@ -164,12 +205,12 @@ void Lcd_i2c::cursor_set_pos(uint8_t x, uint8_t y){
 	this->__set_DDRAM_addr(this->curr_pos);
 }
 
-void Lcd_i2c::cursor_return_home(){
+void Lcd::cursor_return_home(){
 	this->sender->send_byte(this->return_home);
 	this->curr_pos = 0;
 }
 
-void Lcd_i2c::write_user_symbol(const uint8_t *arr, const uint8_t addres){
+void Lcd::write_user_symbol(const uint8_t *arr, const uint8_t addres){
 	this->__set_CGRAM_addr((addres%8) * 8);
 	for (uint8_t i = 0; i < 8; ++i) {
 		this->sender->write_data(arr[i]);
@@ -177,70 +218,75 @@ void Lcd_i2c::write_user_symbol(const uint8_t *arr, const uint8_t addres){
 	this->__set_DDRAM_addr(curr_pos); // Возвращяем курсор
 }
 
-void Lcd_i2c::clear_display(){
+void Lcd::clear_display(){
 	sender->send_byte(display_clear);
 }
 
-uint8_t Lcd_i2c::get_cursor_pos_x(){
+uint8_t Lcd::get_cursor_pos_x(){
 	return (this->curr_pos % MAX_HORISONTAL_CELL);
 }
 
-uint8_t Lcd_i2c::get_cursor_pos_y(){
+uint8_t Lcd::get_cursor_pos_y(){
 	return (this->curr_pos / MAX_HORISONTAL_CELL);
 }
 
-Lcd_sender_abstract *Lcd_i2c::get_sender(){
+Lcd_sender_abstract *Lcd::get_sender(){
 	return this->sender;
 }
 
-void Lcd_i2c::__set_4_bit_interface(){
-	this->__delay_ms(15);
-	sender->send_byte(0b11);
-	this->__delay_ms(5);
-	sender->send_byte(0b11);
-	sender->send_byte(0b11);
-	sender->send_byte(0b10);
-}
-
-void Lcd_i2c::__set_DDRAM_addr(uint8_t addr){
+void Lcd::__set_DDRAM_addr(uint8_t addr){
 	this->DDRAM_addres &= 0b10000000;
 	this->DDRAM_addres |= addr & 0b01111111;
 	this->sender->send_byte(DDRAM_addres);
 }
 
-void Lcd_i2c::__set_CGRAM_addr(uint8_t addr){
+void Lcd::__set_CGRAM_addr(uint8_t addr){
 	CGRAM_addres &= ~(0x3f);
 	CGRAM_addres |= (addr & 0x3f);
 	this->sender->send_byte(CGRAM_addres);
 }
 
-void Lcd_i2c::__delay_ms(uint32_t ms){
+void Lcd::__delay_ms(uint32_t ms){
 	LL_mDelay(ms);
 }
 
-void Lcd_i2c::__delay_us(uint32_t us){
+void Lcd::__delay_us(uint32_t us){
 	if (us < 1000)
 		this->__delay_ms(1);
 	else
 		this->__delay_ms(us / 1000);
 }
 
-void Lcd_i2c::init(){
-	this->enable_light(true);
-	this->__set_4_bit_interface();
+void Lcd::init(){
+//	this->sender->send_byte(DDRAM_addres);
+//	this->sender->send_byte(CGRAM_addres);
+//	this->sender->send_byte(function_set);
+//	this->sender->send_byte(cursor_display_shift);
+//	this->sender->send_byte(display_on_off);
+//	this->sender->send_byte(entry_mode_set);
+//	this->sender->send_byte(return_home);
+//	this->sender->send_byte(display_clear);
 
-	/* setting */
-	sender->send_byte(function_set);
-
-	/* Display off */
-	this->enable_display(0b00001000);
-
-	/* dipsplay clear */
-	this->clear_display();
-
-	/* setting mode */
-	this->sender->send_byte(entry_mode_set);
-	this->cursor_return_home();
+	// Записать изменения в регистры
+	for (uint8_t var = 0; var < 2; ++var) {  // Todo - Fix
+		this->__delay_ms(40);
+		this->enable_light(true);
+		this->sender->send_half_byte(0b11);
+		LL_mDelay(5);
+		this->sender->send_byte(0b101000);
+		LL_mDelay(5);
+		this->sender->send_byte(0b101000);
+		LL_mDelay(5);
+		this->sender->send_byte(0b00001111);
+		LL_mDelay(5);
+		this->sender->send_byte(1);
+		LL_mDelay(5);
+		this->sender->send_byte(0b110);
+	}
+	// fix param
+	function_set |= 0b101000;
+	display_on_off |= 0b00001111;
+	entry_mode_set |= 0b110;
 }
 
 

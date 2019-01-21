@@ -44,7 +44,17 @@ enum display_line_cnt {
 	DISP_1_LINE,
 };
 
-class Lcd_i2c {
+enum interface_data_length {
+	INTERFACE_8_BIT,
+	INTERFACE_4_BIT,
+};
+
+enum font_type {
+	FONT_5X11,
+	FONT_5X8,
+};
+
+class Lcd {
 
 public:
 	/*
@@ -54,9 +64,9 @@ public:
 	 * line_cnt - quantity of the displayed lines
 	 * */
 //	Lcd_i2c(Lcd_sender_abstract *sender, uint8_t size_x, uint8_t size_y);
-	Lcd_i2c(Lcd_sender_abstract *sender, display_line_cnt line_cnt);
-	Lcd_i2c(Lcd_sender_abstract *sender);
-	virtual ~Lcd_i2c();
+	Lcd(Lcd_sender_abstract *sender, display_line_cnt line_cnt);
+	Lcd(Lcd_sender_abstract *sender);
+	virtual ~Lcd();
 
 // pb Methods
 public:
@@ -65,17 +75,24 @@ public:
 	void enable_cursor(bool state);
 	void enable_blink(bool state);
 	void enable_display(bool state);
-	void cursor_set_autoshift(shift_direction dir);
-	void write_symbol(const uint8_t sym);
-	void write_string(uint8_t *sym);
-	void set_numbers_disp_line(display_line_cnt cnt);
-	void shift_display(shift_direction dir, uint8_t cnt);
-	void shift_cursor(shift_direction dir, uint8_t cnt);
-	/* arr have size 8, contain 5bit constant, address 0-7 */
-	void write_user_symbol(const uint8_t *arr, const uint8_t addres);
+	void enable_display_shift(bool state);
+
 	/* start x=0 y=0; x max 63; y max 1*/
 	void cursor_set_pos(uint8_t x, uint8_t y);
+	void cursor_set_autoshift(shift_direction dir);
 	void cursor_return_home();
+
+	/* arr have size 8, contain 5bit constant, address 0-7 */
+	void write_user_symbol(const uint8_t *arr, const uint8_t addres);
+	void write_symbol(const uint8_t sym);
+	void write_string(uint8_t *sym);
+
+	void set_numbers_disp_line(display_line_cnt cnt);
+	void set_interface_data_length(interface_data_length cnt);
+	void set_display_font_type(font_type type);
+	void set_display_shift(shift_direction dir, uint8_t cnt);
+	void set_cursor_shift(shift_direction dir, uint8_t cnt);
+
 	void clear_display();
 
 	/* getters and settors */
@@ -85,7 +102,7 @@ public:
 
 // pv Methods
 private:
-	void __set_4_bit_interface();
+	void __set_interface_data_length(interface_data_length cnt);
 	void __set_DDRAM_addr(uint8_t addr);  /* pos on display */
 	void __set_CGRAM_addr(uint8_t addr);
 	void __delay_ms(uint32_t ms);
@@ -103,8 +120,8 @@ private:
 	uint8_t CGRAM_addres			= 0b01000000;  // {1 AC5-AC0}
 	uint8_t function_set 			= 0b00100000;  // {0 0 1 DL  N    F    -   -}
 	uint8_t cursor_display_shift 	= 0b00010000;  // {0 0 0 1   S/C  R/L  -   -}
-	uint8_t display_on_off 			= 0b00001111;  // {0 0 0 0   1    D    C   B}
-	uint8_t entry_mode_set 			= 0b00000110;  // {0 0 0 0   0    1    I/D SH}
+	uint8_t display_on_off 			= 0b00001000;  // {0 0 0 0   1    D    C   B}
+	uint8_t entry_mode_set 			= 0b00000100;  // {0 0 0 0   0    1    I/D SH}
 	uint8_t return_home				= 0b00000010;  // {0 0 0 0   0    0    1   -}
 	uint8_t display_clear			= 0b00000001;  // {0 0 0 0   0    0    0   1}
 };
