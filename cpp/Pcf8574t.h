@@ -65,6 +65,7 @@ private:
 	void __send_half_byte_with_strob(const uint8_t half_bt);
 	void __send_strobe(pcf_packet *p);
 	void __set_pin(pcf_packet *p);
+	void __reset_data_pin(pcf_packet *p);
 	void __delay_ms(uint32_t ms);  // Todo
 	void __delay_us(uint32_t us);  // Todo
 
