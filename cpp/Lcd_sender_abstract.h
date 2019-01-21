@@ -16,9 +16,15 @@ public:
 // virtual methods
 public:
 	/*
+	 * Must be send 4 bit data to lcd with E
+	 * Has to have delay before send > 50 us
+	 * */
+	virtual void send_half_byte(const uint8_t half_bt) = 0;
+
+	/*
 	 * Must be send 8 bit data to lcd with two E
 	 * High bit is first
-	 * Has to have delay before send > 50 us
+	 * Has to have delay before send half byte > 50 us
 	 * */
 	virtual void send_byte(const uint8_t bt) = 0;
 
