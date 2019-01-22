@@ -46,7 +46,7 @@
 /* USER CODE BEGIN Includes */
 #include "Lcd.h"
 #include "Pcf8574t.h"
-#include "cstdlib"
+#include "Lcdgpio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -125,12 +125,79 @@ int main(void)
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	pcf::Pcf8574t pcf = pcf::Pcf8574t(0b01001111, &example_transmit_to_lcd_i2c,
-						      &example_recive_from_lcd_i2c);
-	lcd::Lcd_i2c lcd_i2c = lcd::Lcd_i2c(&pcf);
+	Lcd_gpio::GPIO_control_union gpios;
+	Lcd_gpio::PORT_control_union ports;
 
+	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+	RCC->AHBENR |= RCC_AHBENR_GPIODEN;
+
+	for (int i = 0; i < 8; ++i) {
+		GPIOD->MODER |= (1 << (i*2));
+		GPIOD->MODER &= ~(10 << (i*2));
+
+		GPIOD->PUPDR |= (1 << (i*2));
+		GPIOD->PUPDR &= ~(10 << (i*2));
+	}
+	for (int i = 3; i < 6; ++i) {
+		GPIOB->MODER |= (1 << (i*2));
+		GPIOB->MODER &= ~(10 << (i*2));
+
+		GPIOB->PUPDR |= (1 << (i*2));
+		GPIOB->PUPDR &= ~(10 << (i*2));
+	}
+
+	gpios.gpios.GPIO_RS = GPIOB;
+	gpios.gpios.GPIO_RW = GPIOB;
+	gpios.gpios.GPIO_E = GPIOB;
+#ifndef LCD_4_BIT
+	gpios.gpios.GPIO_D0 = GPIOD;
+	gpios.gpios.GPIO_D1 = GPIOD;
+	gpios.gpios.GPIO_D2 = GPIOD;
+	gpios.gpios.GPIO_D3 = GPIOD;
+#endif
+	gpios.gpios.GPIO_D4 = GPIOD;
+	gpios.gpios.GPIO_D5 = GPIOD;
+	gpios.gpios.GPIO_D6 = GPIOD;
+	gpios.gpios.GPIO_D7 = GPIOD;
+	gpios.gpios.GPIO_LED = GPIOB;
+
+	ports.ports.PORT_RS = 5;
+	ports.ports.PORT_RW = 4;
+	ports.ports.PORT_E = 3;
+#ifndef LCD_4_BIT
+	ports.ports.PORT_D0 = 7;
+	ports.ports.PORT_D1 = 6;
+	ports.ports.PORT_D2 = 5;
+	ports.ports.PORT_D3 = 4;
+#endif
+	ports.ports.PORT_D4 = 3;
+	ports.ports.PORT_D5 = 2;
+	ports.ports.PORT_D6 = 1;
+	ports.ports.PORT_D7 = 0;
+	ports.ports.PORT_LED = 8;
+
+	Lcd_gpio::Lcd_gpio lcd_gpio = Lcd_gpio::Lcd_gpio(&gpios, &ports);
+//	lcd_gpio.send_half_byte(0b1111);
+//	pcf::Pcf8574t pcf = pcf::Pcf8574t(0b01001111, &example_transmit_to_lcd_i2c,
+//						      &example_recive_from_lcd_i2c);
+
+//	lcd::Lcd lcd_i2c = lcd::Lcd(&pcf);
+	lcd::Lcd lcd_pins = lcd::Lcd(&lcd_gpio);
+//	lcd_pins.init();
+	uint8_t ch = 0;
+	lcd_pins.write_string((uint8_t *)"Hi world!!");
+	LL_mDelay(1000);
 	while (1)
 	{
+		for (int var = 0; var < 16; ++var) {
+			for (int var2 = 0; var2 < 4; ++var2) {
+				lcd_pins.cursor_set_pos(var, var2);
+				lcd_pins.set_display_shift(lcd::SHIFT_RIGHT, 1);
+				lcd_pins.write_symbol(ch++);
+				LL_mDelay(200);
+			}
+		}
+//		lcd_i2c.write_string((uint8_t *)("Hellow!!!"));
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
@@ -261,16 +328,36 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void example_transmit_to_lcd_i2c(const uint8_t addres, const uint8_t data){
 	LL_I2C_HandleTransfer(I2C2, addres, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
-	LL_I2C_TransmitData8(I2C2, data);
-	while(!LL_I2C_IsActiveFlag_STOP(I2C2)){
+	/* Loop until STOP flag is raised  */
+	while(!LL_I2C_IsActiveFlag_STOP(I2C2))
+	{
+		/* (2.1) Transmit data (TXIS flag raised) *********************************/
+
+		/* Check TXIS flag value in ISR register */
+		if(LL_I2C_IsActiveFlag_TXIS(I2C2))
+		{
+			/* Write data in Transmit Data register.
+	      TXIS flag is cleared by writing data in TXDR register */
+			LL_I2C_TransmitData8(I2C2, data);
+		}
 	}
+
+	/* End of I2C_SlaveReceiver_MasterTransmitter Process */
 	LL_I2C_ClearFlag_STOP(I2C2);
+
+
+//	LL_I2C_HandleTransfer(I2C2, addres, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_WRITE);
+//
+//	while(!LL_I2C_IsActiveFlag_STOP(I2C2)){
+//		LL_I2C_TransmitData8(I2C2, data);
+//	}
+//	LL_I2C_ClearFlag_STOP(I2C2);
 }
 
 // addres - 0b01001111
 uint8_t example_recive_from_lcd_i2c(const uint8_t addres){
 	uint8_t ans_recv = 0;
-	LL_I2C_HandleTransfer(I2C2, addres, LL_I2C_ADDRSLAVE_7BIT, 1, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_READ);
+	LL_I2C_HandleTransfer(I2C2, addres, LL_I2C_ADDRSLAVE_7BIT, 2, LL_I2C_MODE_AUTOEND, LL_I2C_GENERATE_START_READ);
 	while(!LL_I2C_IsActiveFlag_STOP(I2C2)) {
 		/* Receive data (RXNE flag raised) */
 
