@@ -19,7 +19,9 @@ public:
 	 * Must be send 4 bit data to lcd with E
 	 * Has to have delay before send > 50 us
 	 * */
+#ifdef LCD_4_BIT
 	virtual void send_half_byte(const uint8_t half_bt) = 0;
+#endif
 
 	/*
 	 * Must be send 8 bit data to lcd with two E

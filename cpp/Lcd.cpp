@@ -159,12 +159,12 @@ void Lcd::set_display_shift(shift_direction dir, uint8_t cnt){
 	for (uint8_t i = 0; i < cnt; i++) {
 		switch (dir) {
 			case SHIFT_LEFT:{
-				cursor_display_shift |= (1 << BIT_S_C) | (1 << BIT_R_L);
+				cursor_display_shift |= (1 << BIT_S_C);
+				cursor_display_shift &= ~(1 << BIT_R_L);
 				break;
 			}
 			case SHIFT_RIGHT:{
-				cursor_display_shift |= (1 << BIT_S_C);
-				cursor_display_shift &= ~(1 << BIT_R_L);
+				cursor_display_shift |= (1 << BIT_S_C) | (1 << BIT_R_L);
 				break;
 			}
 			default:
@@ -195,6 +195,7 @@ void Lcd::set_cursor_shift(shift_direction dir, uint8_t cnt){
 }
 
 void Lcd::cursor_set_pos(uint8_t x, uint8_t y){
+#ifdef LCD1602
 	if (x > 0x3f){
 		x = 0x3f;
 	}
@@ -203,6 +204,21 @@ void Lcd::cursor_set_pos(uint8_t x, uint8_t y){
 	}
 	this->curr_pos = x | (y << 6);
 	this->__set_DDRAM_addr(this->curr_pos);
+#endif
+#ifdef LCD1604
+	if (x > 0x0f){
+		x = 0x0f;
+	}
+	if (y > 3){
+		y = 3;
+	}
+	if (y == 0) y = 0;
+	if (y == 1) y = 0x40;
+	if (y == 2) y = 0x10;
+	if (y == 3) y = 0x50;
+	this->curr_pos = x | y;
+	this->__set_DDRAM_addr(this->curr_pos);
+#endif
 }
 
 void Lcd::cursor_return_home(){
@@ -267,22 +283,22 @@ void Lcd::init(){
 //	this->sender->send_byte(return_home);
 //	this->sender->send_byte(display_clear);
 
-	// Записать изменения в регистры
-	for (uint8_t var = 0; var < 2; ++var) {  // Todo - Fix
+//	for (uint8_t var = 0; var < 2; ++var) {  // Todo - Fix
 		this->__delay_ms(40);
 		this->enable_light(true);
+#ifdef LCD_4_BIT
 		this->sender->send_half_byte(0b11);
-		LL_mDelay(5);
 		this->sender->send_byte(0b101000);
-		LL_mDelay(5);
 		this->sender->send_byte(0b101000);
-		LL_mDelay(5);
+#endif
+#ifndef LCD_4_BIT
+		this->sender->send_byte(0b00111000);
+		this->sender->send_byte(0b00111000);
+#endif
 		this->sender->send_byte(0b00001111);
-		LL_mDelay(5);
 		this->sender->send_byte(1);
-		LL_mDelay(5);
 		this->sender->send_byte(0b110);
-	}
+//	}
 	// fix param
 	function_set |= 0b101000;
 	display_on_off |= 0b00001111;

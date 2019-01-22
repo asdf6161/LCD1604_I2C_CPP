@@ -6,7 +6,7 @@
  */
 
 #ifdef USE_FULL_LL_DRIVER
-
+#ifdef LCD_4_BIT
 #include <Pcf8574t.h>
 
 namespace pcf {
@@ -90,4 +90,5 @@ void Pcf8574t::enable_led(const bool state){
 
 } /* namespace lcd */
 
+#endif // LCD_4_bit
 #endif // USE_FULL_LL_DRIVER2

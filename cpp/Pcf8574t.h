@@ -6,7 +6,7 @@
  */
 
 #ifdef USE_FULL_LL_DRIVER
-
+#ifdef LCD_4_BIT
 #ifndef PCF8574T_H_
 #define PCF8574T_H_
 
@@ -81,4 +81,5 @@ private:
 } /* namespace lcd */
 
 #endif /* PCF8574T_H_ */
+#endif // LCD_4_bit
 #endif // USE_FULL_LL_DRIVER2

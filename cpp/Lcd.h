@@ -23,6 +23,7 @@
 
 #include "stdint.h"
 #include "Pcf8574t.h"
+#include "Lcd_sender_abstract.h"
 
 extern "C" {
 #ifdef STM32F303xC
@@ -77,7 +78,6 @@ public:
 	void enable_display(bool state);
 	void enable_display_shift(bool state);
 
-	/* start x=0 y=0; x max 63; y max 1*/
 	void cursor_set_pos(uint8_t x, uint8_t y);
 	void cursor_set_autoshift(shift_direction dir);
 	void cursor_return_home();
