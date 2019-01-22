@@ -30,7 +30,9 @@ void Lcd_gpio::send_byte(const uint8_t bt){
 	this->send_half_byte(bt >> 4);
 	this->send_half_byte(bt);
 #endif
+#ifndef LCD_4_BIT
 	__send_with_strobe(bt);
+#endif
 }
 
 void Lcd_gpio::write_data(uint8_t command){
