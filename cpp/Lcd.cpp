@@ -36,9 +36,17 @@ Lcd::~Lcd() {
 
 }
 
-bool Lcd::__read_busy_flag(){
-	// Todo
-	return false;
+bool Lcd::read_busy(){
+	uint8_t res = this->sender->read_busy_and_addres();
+	return (bool)((res >> 7) & 1);
+}
+
+uint8_t Lcd::read_cursor_addres(){
+	return (this->sender->read_busy_and_addres() & 0b1111111);
+}
+
+uint8_t Lcd::read_symbol_addres(){
+	return this->sender->read_data_from_ram();
 }
 
 void Lcd::enable_light(bool state){
@@ -287,6 +295,7 @@ void Lcd::init(){
 		this->__delay_ms(40);
 		this->enable_light(true);
 #ifdef LCD_4_BIT
+		this->sender->send_half_byte(0b10);
 		this->sender->send_half_byte(0b10);
 		this->sender->send_byte(0b101000);
 		this->sender->send_byte(0b101000);

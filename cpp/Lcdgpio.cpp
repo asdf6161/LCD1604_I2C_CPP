@@ -19,11 +19,86 @@ Lcd_gpio::~Lcd_gpio() {
 
 }
 
+void Lcd_gpio::init_pin(){
+	for (uint8_t i = 0; i < PORT_CNT; ++i) {
+		LL_GPIO_SetPinOutputType(gpios->gpios_arr[i], 1 << ports->ports_arr[i], LL_GPIO_OUTPUT_PUSHPULL);
+		LL_GPIO_SetPinMode(gpios->gpios_arr[i], 1 << ports->ports_arr[i], LL_GPIO_MODE_OUTPUT);
+		LL_GPIO_SetPinPull(gpios->gpios_arr[i], 1 << ports->ports_arr[i], LL_GPIO_PULL_DOWN);
+	}
+}
+
+void Lcd_gpio::__init_pin_out(){
+	for (uint8_t i = 3; i < PORT_CNT-1; ++i) {
+		LL_GPIO_SetPinMode(gpios->gpios_arr[i], 1 << ports->ports_arr[i], LL_GPIO_MODE_OUTPUT);
+	}
+}
+
+void Lcd_gpio::__init_pin_in(){
+	for (uint8_t i = 3; i < PORT_CNT-1; ++i) {
+		LL_GPIO_SetPinMode(gpios->gpios_arr[i], 1 << ports->ports_arr[i], LL_GPIO_MODE_INPUT);
+	}
+}
+
+uint8_t Lcd_gpio::__read_port(){
+	uint8_t data = 0;
+	for (int i = 3; i < PORT_CNT-1; ++i) {
+		data |= ((LL_GPIO_ReadInputPort(gpios->gpios_arr[i]) >> ports->ports_arr[i])&0b1) << (i - 3);
+	}
+	return data;
+}
+
+uint8_t Lcd_gpio::__read_port_with_strobe(){
+	uint8_t data = 0;
+	this->__init_pin_in();
+
+#ifdef LCD_4_BIT
+	__set_e();
+	data = __read_port() << 4;
+	__delay_us(1);
+	__reset_e();
+
+	__set_e();
+	data |= __read_port();
+	__delay_us(1);
+	__reset_e();
+
+#else
+	__set_e();
+	__delay_us(1);
+	data = __read_port();
+	__delay_us(1);
+	__reset_e();
+#endif
+
+	this->__init_pin_out();
+	return data;
+}
+
 #ifdef LCD_4_BIT
 void Lcd_gpio::send_half_byte(const uint8_t half_bt){
 	__send_with_strobe(half_bt);
 }
 #endif
+
+
+uint8_t Lcd_gpio::read_busy_and_addres(){
+	uint8_t data = 0;
+	LL_GPIO_ResetOutputPin(gpios->gpios.GPIO_RS, 1 << ports->ports.PORT_RS);
+	LL_GPIO_SetOutputPin(gpios->gpios.GPIO_RW, 1 << ports->ports.PORT_RW);
+	data = __read_port_with_strobe();
+	LL_GPIO_ResetOutputPin(gpios->gpios.GPIO_RW, 1 << ports->ports.PORT_RW);
+	return data;
+}
+
+uint8_t Lcd_gpio::read_data_from_ram(){
+	uint8_t data = 0;
+	LL_GPIO_SetOutputPin(gpios->gpios.GPIO_RS, 1 << ports->ports.PORT_RS);
+	LL_GPIO_SetOutputPin(gpios->gpios.GPIO_RW, 1 << ports->ports.PORT_RW);
+	data = __read_port_with_strobe();
+	LL_GPIO_ResetOutputPin(gpios->gpios.GPIO_RS, 1 << ports->ports.PORT_RS);
+	LL_GPIO_ResetOutputPin(gpios->gpios.GPIO_RW, 1 << ports->ports.PORT_RW);
+	return data;
+}
 
 void Lcd_gpio::send_byte(const uint8_t bt){
 #ifdef LCD_4_BIT

@@ -93,6 +93,11 @@ public:
 	void set_display_shift(shift_direction dir, uint8_t cnt);
 	void set_cursor_shift(shift_direction dir, uint8_t cnt);
 
+	bool read_busy();
+	uint8_t read_cursor_addres();
+	/* after reading a symbol the cursor will mix up on 1 */
+	uint8_t read_symbol_addres();
+
 	void clear_display();
 
 	/* getters and settors */
@@ -107,7 +112,6 @@ private:
 	void __set_CGRAM_addr(uint8_t addr);
 	void __delay_ms(uint32_t ms);
 	void __delay_us(uint32_t us);
-	bool __read_busy_flag();
 
 // vars
 private:

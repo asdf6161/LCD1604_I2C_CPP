@@ -108,6 +108,10 @@ public:
 #ifdef LCD_4_BIT
 	void send_half_byte(const uint8_t half_bt);
 #endif
+
+	uint8_t read_busy_and_addres();
+	uint8_t read_data_from_ram();
+
 	/*
 	 * Must be send 8 bit data to lcd with two E
 	 * High bit is first
@@ -126,6 +130,8 @@ public:
 	 * */
 	void enable_led(const bool state);
 
+	void init_pin();
+
 // PV methods
 private:
 	void __strobe();
@@ -136,6 +142,10 @@ private:
 	void __delay_ms(uint32_t ms);
 	void __delay_us(uint32_t us);
 	void __send_with_strobe(uint8_t byte);
+	void __init_pin_out();
+	void __init_pin_in();
+	uint8_t __read_port();
+	uint8_t __read_port_with_strobe();
 
 // vars
 private:

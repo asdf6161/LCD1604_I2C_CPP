@@ -23,6 +23,9 @@ public:
 	virtual void send_half_byte(const uint8_t half_bt) = 0;
 #endif
 
+	virtual uint8_t read_busy_and_addres() = 0;
+	virtual uint8_t read_data_from_ram() = 0;
+
 	/*
 	 * Must be send 8 bit data to lcd with two E
 	 * High bit is first

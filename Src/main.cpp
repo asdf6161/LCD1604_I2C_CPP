@@ -131,21 +131,6 @@ int main(void)
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 	RCC->AHBENR |= RCC_AHBENR_GPIODEN;
 
-	for (int i = 0; i < 8; ++i) {
-		GPIOD->MODER |= (1 << (i*2));
-		GPIOD->MODER &= ~(10 << (i*2));
-
-		GPIOD->PUPDR |= (1 << (i*2));
-		GPIOD->PUPDR &= ~(10 << (i*2));
-	}
-	for (int i = 3; i < 6; ++i) {
-		GPIOB->MODER |= (1 << (i*2));
-		GPIOB->MODER &= ~(10 << (i*2));
-
-		GPIOB->PUPDR |= (1 << (i*2));
-		GPIOB->PUPDR &= ~(10 << (i*2));
-	}
-
 	gpios.gpios.GPIO_RS = GPIOB;
 	gpios.gpios.GPIO_RW = GPIOB;
 	gpios.gpios.GPIO_E = GPIOB;
@@ -177,15 +162,18 @@ int main(void)
 	ports.ports.PORT_LED = 8;
 
 	Lcd_gpio::Lcd_gpio lcd_gpio = Lcd_gpio::Lcd_gpio(&gpios, &ports);
+	lcd_gpio.init_pin();
 //	lcd_gpio.send_half_byte(0b1111);
 //	pcf::Pcf8574t pcf = pcf::Pcf8574t(0b01001111, &example_transmit_to_lcd_i2c,
 //						      &example_recive_from_lcd_i2c);
 
 //	lcd::Lcd lcd_i2c = lcd::Lcd(&pcf);
 	lcd::Lcd lcd_pins = lcd::Lcd(&lcd_gpio);
-//	lcd_pins.init();
 	uint8_t ch = 0;
 	lcd_pins.write_string((uint8_t *)"Hi world!!");
+	lcd_pins.cursor_set_pos(4,0);
+	uint8_t cursor_pos = lcd_pins.read_cursor_addres();
+	uint8_t addres_sym = lcd_pins.read_symbol_addres();
 	LL_mDelay(1000);
 	while (1)
 	{
