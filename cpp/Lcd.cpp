@@ -287,7 +287,7 @@ void Lcd::init(){
 		this->__delay_ms(40);
 		this->enable_light(true);
 #ifdef LCD_4_BIT
-		this->sender->send_half_byte(0b11);
+		this->sender->send_half_byte(0b10);
 		this->sender->send_byte(0b101000);
 		this->sender->send_byte(0b101000);
 #endif
