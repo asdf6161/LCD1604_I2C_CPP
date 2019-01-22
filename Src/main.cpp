@@ -189,6 +189,22 @@ int main(void)
 	LL_mDelay(1000);
 	while (1)
 	{
+		lcd_pins.enable_cursor(false);
+		LL_mDelay(2000);
+		lcd_pins.enable_cursor(true);
+		LL_mDelay(2000);
+		lcd_pins.enable_blink(false);
+		LL_mDelay(2000);
+		lcd_pins.enable_blink(true);
+		LL_mDelay(2000);
+		lcd_pins.enable_cursor(false);
+		LL_mDelay(2000);
+		lcd_pins.enable_cursor(true);
+		LL_mDelay(2000);
+		lcd_pins.enable_display(false);
+		LL_mDelay(2000);
+		lcd_pins.enable_display(true);
+		LL_mDelay(2000);
 		for (int var = 0; var < 16; ++var) {
 			for (int var2 = 0; var2 < 4; ++var2) {
 				lcd_pins.cursor_set_pos(var, var2);
